@@ -21,41 +21,6 @@ Water Report Studio is a Next.js application that turns raw water quality PDF re
 - [react-pdf](https://github.com/wojtekmaj/react-pdf) + Mozilla pdf.js for rendering PDFs
 - [Framer Motion](https://www.framer.com/motion/) for subtle UI animations
 
-## Getting Started
-
-### Prerequisites
-
-- Node.js 18 or newer
-- npm (ships with Node)
-- Local copy of the repository
-
-### Installation
-
-```bash
-npm install
-```
-
-### Environment Variables
-
-Create `.env.local` using the provided example:
-
-```bash
-cp .env.example .env.local
-```
-
-Populate the following keys:
-
-- `SITE_PASSWORD` – shared password for the unlock gate
-- `SITE_SALT` – cryptographic salt used to hash the password (keep this secret)
-
-### Useful npm Scripts
-
-| Command          | Description                                  |
-| ---------------- | -------------------------------------------- |
-| `npm run dev`    | Start the development server on `localhost:3000` |
-| `npm run build`  | Create an optimized production build         |
-| `npm run start`  | Start the production server                  |
-| `npm run lint`   | Run ESLint against the codebase              |
 
 ## Workflow Overview
 
@@ -65,29 +30,9 @@ Populate the following keys:
 4. **Generate SQL** – Click **Generate SQL** to produce insert statements. The dialog includes an editable textarea.
 5. **Deploy** – Switch to the **Deploy Guide** tab (or visit `/deploy`) to follow the MariaDB connection checklist.
 
-## Project Structure
-
-```
-src/
-  app/                # Next.js routes (landing, dashboard, deploy, auth)
-  components/         # Reusable UI components and feature panels
-  lib/                # Auth, environment helpers, constants
-  store/              # Zustand store for PDF + contaminant state
-```
 
 ## Authentication Flow
 
 - Protected routes (`/dashboard`, `/deploy`, etc.) require a hashed cookie (`waterreport-auth`).
 - Middleware reroutes anonymous visitors to the landing page with a redirect hint.
 - The unlock form sets the cookie after verifying the shared password.
-
-## Contributing
-
-1. Fork and clone the repository.
-2. Create a feature branch (`git checkout -b feature/amazing-idea`).
-3. Commit changes with clear messages.
-4. Run `npm run lint` before opening a pull request.
-
-## License
-
-This project is proprietary. Ask Ian before distributing or reusing the code.
