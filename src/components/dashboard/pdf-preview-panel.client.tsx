@@ -7,7 +7,12 @@ import { useWaterStore } from '@/store/useWaterStore';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
-pdfjs.GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url).toString();
+if (typeof window !== 'undefined') {
+  const workerSrc = '/pdf.worker.min.mjs';
+  if (pdfjs.GlobalWorkerOptions.workerSrc !== workerSrc) {
+    pdfjs.GlobalWorkerOptions.workerSrc = workerSrc;
+  }
+}
 
 const MIN_WIDTH = 280;
 const MAX_WIDTH = 760;
@@ -333,7 +338,6 @@ export const PdfPreviewPanelClient = () => {
                         className={`max-w-none rounded-2xl border border-slate-200 bg-white shadow transition dark:border-white/10 dark:bg-slate-900/80 ${
                           page === pageNumber ? 'ring-1 ring-brand/40 dark:ring-sky-400/50' : ''
                         }`}
-                        style={{ width: 'auto' }}
                         inputRef={registerPageRef(page)}
                       />
                     ))}

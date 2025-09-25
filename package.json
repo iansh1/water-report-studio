@@ -7,11 +7,15 @@
     "doc": "docs"
   },
   "scripts": {
+    "predev": "node scripts/copy-pdf-worker.mjs",
+    "prebuild": "node scripts/copy-pdf-worker.mjs",
+    "prestart": "node scripts/copy-pdf-worker.mjs",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "dev:pdf": "ts-node src/pdf/cli.ts"
+    "dev:pdf": "ts-node src/pdf/cli.ts",
+    "postinstall": "node scripts/copy-pdf-worker.mjs"
   },
   "keywords": [
     "water",
@@ -25,6 +29,7 @@
     "node": "20.x"
   },
   "dependencies": {
+    "@noble/hashes": "^1.8.0",
     "@types/react-pdf": "^6.2.0",
     "autoprefixer": "^10.4.20",
     "clsx": "^2.1.1",

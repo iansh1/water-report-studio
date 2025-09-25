@@ -15,29 +15,36 @@ const isPublic = (pathname: string) => {
 };
 
 export function middleware(request: NextRequest) {
-  const { nextUrl, cookies } = request;
-  const { pathname } = nextUrl;
+  try {
+    const { nextUrl, cookies } = request;
+    const { pathname } = nextUrl;
 
-  const authToken = cookies.get(AUTH_COOKIE_NAME)?.value;
-  const isAuthenticated = isRequestAuthenticated(authToken);
+    const authToken = cookies.get(AUTH_COOKIE_NAME)?.value;
+    const isAuthenticated = isRequestAuthenticated(authToken);
 
-  if (pathname === '/unlock' && isAuthenticated) {
-    const redirectTo = nextUrl.searchParams.get(AUTH_REDIRECT_PARAM) ?? '/dashboard';
-    return NextResponse.redirect(new URL(redirectTo, request.url));
-  }
+    if (pathname === '/unlock' && isAuthenticated) {
+      const redirectTo = nextUrl.searchParams.get(AUTH_REDIRECT_PARAM) ?? '/dashboard';
+      return NextResponse.redirect(new URL(redirectTo, request.url));
+    }
 
-  if (isPublic(pathname)) {
+    if (isPublic(pathname)) {
+      return NextResponse.next();
+    }
+
+    if (!isAuthenticated) {
+      const redirectUrl = new URL('/', request.url);
+      const target = `${pathname}${nextUrl.search}`;
+      redirectUrl.searchParams.set(AUTH_REDIRECT_PARAM, target);
+      return NextResponse.redirect(redirectUrl);
+    }
+
     return NextResponse.next();
+  } catch (error) {
+    console.error('[middleware] unexpected failure', error);
+    const fallback = new URL('/', request.url);
+    fallback.searchParams.set('middleware', 'error');
+    return NextResponse.redirect(fallback);
   }
-
-  if (!isAuthenticated) {
-    const redirectUrl = new URL('/', request.url);
-    const target = `${pathname}${nextUrl.search}`;
-    redirectUrl.searchParams.set(AUTH_REDIRECT_PARAM, target);
-    return NextResponse.redirect(redirectUrl);
-  }
-
-  return NextResponse.next();
 }
 
 export const config = {

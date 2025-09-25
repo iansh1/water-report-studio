@@ -11,3 +11,4 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 .vercel
+public/pdf.worker.min.mjs

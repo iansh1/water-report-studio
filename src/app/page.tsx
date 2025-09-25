@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
+import type { LinkProps } from 'next/link';
 import { InteractiveSurface } from '@/components/ui/interactive-surface';
 import { AUTH_REDIRECT_PARAM } from '@/lib/constants';
 
@@ -8,7 +9,10 @@ const ThemeFloatToggle = dynamic(() => import('@/components/ui/theme-float-toggl
 export default function HomePage({ searchParams }: { searchParams?: Record<string, string | string[]> }) {
   const requestedParam = typeof searchParams?.[AUTH_REDIRECT_PARAM] === 'string' ? (searchParams?.[AUTH_REDIRECT_PARAM] as string) : '/dashboard';
   const requestedPath = requestedParam.startsWith('/') ? requestedParam : '/dashboard';
-  const unlockHref = `/unlock?${AUTH_REDIRECT_PARAM}=${encodeURIComponent(requestedPath)}`;
+  const unlockHref: LinkProps<'/unlock'>['href'] = {
+    pathname: '/unlock',
+    query: { [AUTH_REDIRECT_PARAM]: requestedPath },
+  };
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center px-6 py-16 transition-colors duration-300">
