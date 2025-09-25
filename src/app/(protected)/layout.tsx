@@ -4,10 +4,10 @@ import { TopBar } from '@/components/layout/top-bar';
 import { AUTH_COOKIE_NAME, AUTH_REDIRECT_PARAM } from '@/lib/constants';
 import { isRequestAuthenticated } from '@/lib/auth-edge';
 
-export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
+export default async function ProtectedLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = cookies();
   const token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
-  const authenticated = isRequestAuthenticated(token);
+  const authenticated = await isRequestAuthenticated(token);
 
   if (!authenticated) {
     const target = '/dashboard';

@@ -25,11 +25,11 @@ export default function UnlockPage({ searchParams }: { searchParams?: Record<str
       return { error: 'Password is required.' };
     }
 
-    if (!verifyPassword(password)) {
+    if (!(await verifyPassword(password))) {
       return { error: 'Incorrect password. Please try again.' };
     }
 
-    setAuthCookie();
+    await setAuthCookie();
     redirect(target);
   };
 

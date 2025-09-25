@@ -2,9 +2,10 @@ import { cookies } from 'next/headers';
 import { AUTH_COOKIE_MAX_AGE, AUTH_COOKIE_NAME } from './constants';
 import { createHash, expectedToken, isRequestAuthenticated } from './auth-edge';
 
-export const setAuthCookie = () => {
+export const setAuthCookie = async () => {
   const cookieStore = cookies();
-  cookieStore.set(AUTH_COOKIE_NAME, expectedToken(), {
+  const token = await expectedToken();
+  cookieStore.set(AUTH_COOKIE_NAME, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
@@ -17,4 +18,7 @@ export const clearAuthCookie = () => {
   cookies().delete(AUTH_COOKIE_NAME);
 };
 
-export const verifyPassword = (candidate: string): boolean => isRequestAuthenticated(createHash(candidate));
+export const verifyPassword = async (candidate: string): Promise<boolean> => {
+  const candidateHash = await createHash(candidate);
+  return await isRequestAuthenticated(candidateHash);
+};

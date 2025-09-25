@@ -6,10 +6,10 @@ import { InteractiveSurface } from '@/components/ui/interactive-surface';
 import { AUTH_COOKIE_NAME, AUTH_REDIRECT_PARAM } from '@/lib/constants';
 import { isRequestAuthenticated } from '@/lib/auth-edge';
 
-export default function DeployPage() {
+export default async function DeployPage() {
   const cookieStore = cookies();
   const token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
-  if (!isRequestAuthenticated(token)) {
+  if (!(await isRequestAuthenticated(token))) {
     redirect(`/?${AUTH_REDIRECT_PARAM}=${encodeURIComponent('/deploy')}`);
   }
 

@@ -29,7 +29,6 @@
     "node": "20.x"
   },
   "dependencies": {
-    "@noble/hashes": "^1.8.0",
     "@types/react-pdf": "^6.2.0",
     "autoprefixer": "^10.4.20",
     "clsx": "^2.1.1",

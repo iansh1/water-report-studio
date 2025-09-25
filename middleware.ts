@@ -14,13 +14,13 @@ const isPublic = (pathname: string) => {
   return false;
 };
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   try {
     const { nextUrl, cookies } = request;
     const { pathname } = nextUrl;
 
     const authToken = cookies.get(AUTH_COOKIE_NAME)?.value;
-    const isAuthenticated = isRequestAuthenticated(authToken);
+    const isAuthenticated = await isRequestAuthenticated(authToken);
 
     if (pathname === '/unlock' && isAuthenticated) {
       const redirectTo = nextUrl.searchParams.get(AUTH_REDIRECT_PARAM) ?? '/dashboard';
