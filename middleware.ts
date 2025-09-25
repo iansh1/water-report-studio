@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { AUTH_COOKIE_NAME, AUTH_REDIRECT_PARAM } from './src/lib/constants';
-import { isRequestAuthenticated } from './src/lib/auth-edge';
 
 const PUBLIC_PATHS = new Set(['/', '/unlock']);
 
@@ -19,6 +17,17 @@ export async function middleware(request: NextRequest) {
   const { pathname } = nextUrl;
 
   try {
+    const constantsModule = await import('./src/lib/constants').catch((error) => {
+      console.error('[middleware] failed to load constants module', { pathname }, error);
+      throw error;
+    });
+    const { AUTH_COOKIE_NAME, AUTH_REDIRECT_PARAM } = constantsModule;
+
+    const authModule = await import('./src/lib/auth-edge').catch((error) => {
+      console.error('[middleware] failed to load auth-edge module', { pathname }, error);
+      throw error;
+    });
+    const { isRequestAuthenticated } = authModule;
 
     const authToken = cookies.get(AUTH_COOKIE_NAME)?.value;
     const isAuthenticated = await isRequestAuthenticated(authToken);
@@ -55,5 +64,4 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: ['/((?!_next).*)'],
-  runtime: 'nodejs',
 };
