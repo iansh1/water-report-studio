@@ -15,9 +15,10 @@ const isPublic = (pathname: string) => {
 };
 
 export async function middleware(request: NextRequest) {
+  const { nextUrl, cookies } = request;
+  const { pathname } = nextUrl;
+
   try {
-    const { nextUrl, cookies } = request;
-    const { pathname } = nextUrl;
 
     const authToken = cookies.get(AUTH_COOKIE_NAME)?.value;
     const isAuthenticated = await isRequestAuthenticated(authToken);
@@ -40,7 +41,7 @@ export async function middleware(request: NextRequest) {
 
     return NextResponse.next();
   } catch (error) {
-    console.error('[middleware] unexpected failure', error);
+    console.error('[middleware] unexpected failure', { pathname, method: request.method }, error);
     const fallback = new URL('/', request.url);
     fallback.searchParams.set('middleware', 'error');
     return NextResponse.redirect(fallback);
