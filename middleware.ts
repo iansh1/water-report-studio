@@ -41,7 +41,8 @@ export async function middleware(request: NextRequest) {
 
     return NextResponse.next();
   } catch (error) {
-    console.error('[middleware] unexpected failure', { pathname, method: request.method }, error);
+    const message = `[middleware] ${request.method} ${pathname} :: ${error instanceof Error ? error.message : String(error)}`;
+    console.error(message);
     const fallback = new URL('/', request.url);
     fallback.searchParams.set('middleware', 'error');
     return NextResponse.redirect(fallback);
