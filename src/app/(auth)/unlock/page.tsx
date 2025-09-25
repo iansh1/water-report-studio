@@ -3,15 +3,15 @@ import { cookies } from 'next/headers';
 import { UnlockForm, UnlockFormState } from '@/components/unlock-form';
 import { AUTH_COOKIE_NAME, AUTH_REDIRECT_PARAM } from '@/lib/constants';
 import { setAuthCookie, verifyPassword } from '@/lib/auth';
+import { isRequestAuthenticated } from '@/lib/auth-edge';
 
 const initialState: UnlockFormState = {};
 
-export default function UnlockPage({ searchParams }: { searchParams?: Record<string, string | string[]> }) {
+export default async function UnlockPage({ searchParams }: { searchParams?: Record<string, string | string[]> }) {
   const redirectTarget = typeof searchParams?.[AUTH_REDIRECT_PARAM] === 'string' ? (searchParams?.[AUTH_REDIRECT_PARAM] as string) : '/dashboard';
   const cookieStore = cookies();
-  const isAuthenticated = cookieStore.has(AUTH_COOKIE_NAME);
-
-  if (isAuthenticated) {
+  const token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
+  if (await isRequestAuthenticated(token)) {
     redirect(redirectTarget);
   }
 
