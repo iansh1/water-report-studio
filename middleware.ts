@@ -41,8 +41,12 @@ export async function middleware(request: NextRequest) {
 
     return NextResponse.next();
   } catch (error) {
-    const message = `[middleware] ${request.method} ${pathname} :: ${error instanceof Error ? error.message : String(error)}`;
-    console.error(message);
+    const baseMessage = `[middleware] ${request.method} ${pathname}`;
+    if (error instanceof Error) {
+      console.error(`${baseMessage} :: ${error.message}\n${error.stack ?? ''}`);
+    } else {
+      console.error(`${baseMessage} :: ${String(error)}`);
+    }
     const fallback = new URL('/', request.url);
     fallback.searchParams.set('middleware', 'error');
     return NextResponse.redirect(fallback);
