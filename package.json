@@ -21,6 +21,9 @@
   ],
   "author": "",
   "license": "MIT",
+  "engines": {
+    "node": "20.x"
+  },
   "dependencies": {
     "@types/react-pdf": "^6.2.0",
     "autoprefixer": "^10.4.20",
