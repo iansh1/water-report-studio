@@ -1,0 +1,50 @@
+{
+  "name": "waterreportappnew",
+  "version": "1.0.0",
+  "description": "Transforms water quality PDF reports into curated data and MariaDB-ready SQL",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "dev:pdf": "ts-node src/pdf/cli.ts"
+  },
+  "keywords": [
+    "water",
+    "pdf",
+    "sql",
+    "nextjs"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@types/react-pdf": "^6.2.0",
+    "autoprefixer": "^10.4.20",
+    "clsx": "^2.1.1",
+    "framer-motion": "^11.2.10",
+    "next": "^14.2.5",
+    "pdf-parse": "^1.1.1",
+    "pdfjs-dist": "^5.3.93",
+    "postcss": "^8.4.41",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-pdf": "^10.1.0",
+    "tailwindcss": "^3.4.10",
+    "zustand": "^4.5.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.30",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@typescript-eslint/eslint-plugin": "^8.44.1",
+    "@typescript-eslint/parser": "^8.44.1",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "^14.2.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.0"
+  }
+}
