@@ -356,8 +356,30 @@ async function extractPdfText(buffer: Buffer): Promise<{ text: string; pageCount
     (globalThis as any).HTMLCanvasElement = class HTMLCanvasElement {};
   }
 
+  if (typeof globalThis.ImageData === 'undefined') {
+    (globalThis as any).ImageData = class ImageData {
+      constructor(data: any, width: number, height?: number) {
+        this.data = data;
+        this.width = width;
+        this.height = height || width;
+      }
+      data: any;
+      width: number;
+      height: number;
+    };
+  }
+
+  if (typeof globalThis.createImageBitmap === 'undefined') {
+    (globalThis as any).createImageBitmap = () => Promise.resolve({});
+  }
+
   const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
   const pdfjsLib = (pdfjs as any).default ?? (pdfjs as any);
+  
+  // Disable worker completely to avoid worker file issues
+  pdfjsLib.GlobalWorkerOptions.workerSrc = '';
+  pdfjsLib.GlobalWorkerOptions.workerPort = null;
+  
   let pdfDocument;
   try {
     const documentData = new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength);
@@ -369,7 +391,12 @@ async function extractPdfText(buffer: Buffer): Promise<{ text: string; pageCount
       data: documentData, 
       disableWorker: true,
       isEvalSupported: false,
-      useSystemFonts: true
+      useSystemFonts: true,
+      standardFontDataUrl: null,
+      useWorkerFetch: false,
+      disableAutoFetch: true,
+      disableStream: true,
+      disableRange: true
     });
     pdfDocument = await loadingTask.promise;
   } catch (error) {
