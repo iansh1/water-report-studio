@@ -1,6 +1,5 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import pdfParse, { PDFInfo } from 'pdf-parse';
 import { CONTAMINANT_CATEGORY_MAP, ContaminantRecord, PdfExtractionResult } from './types';
 
 interface ParseOptions {
@@ -253,9 +252,7 @@ export async function parsePdf(options: ParseOptions): Promise<PdfExtractionResu
   }
 
   const fileBuffer = buffer ?? (await fs.readFile(path.resolve(filePath!)));
-  const result = await pdfParse(fileBuffer);
-
-  const { text, info } = result;
+  const { text, pageCount } = await extractPdfText(fileBuffer);
   const lines = text
     .split(/\r?\n/)
     .map(normaliseWhitespace)
@@ -329,10 +326,44 @@ export async function parsePdf(options: ParseOptions): Promise<PdfExtractionResu
   return {
     metadata: {
       fileName: options.fileName ?? (filePath ? path.basename(filePath) : 'uploaded.pdf'),
-      pageCount: (info as PDFInfo | undefined)?.Pages ?? 0
+      pageCount
     },
     contaminants,
     rawText: text,
     warnings
   };
+}
+
+async function extractPdfText(buffer: Buffer): Promise<{ text: string; pageCount: number }> {
+  const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
+  const pdfjsLib = (pdfjs as any).default ?? (pdfjs as any);
+  let pdfDocument;
+  try {
+    const documentData = new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength);
+    const getDocument = pdfjsLib.getDocument as ((params: any) => any) | undefined;
+    if (!getDocument) {
+      throw new Error('pdfjs getDocument export not found');
+    }
+    const loadingTask = getDocument({ data: documentData, disableWorker: true });
+    pdfDocument = await loadingTask.promise;
+  } catch (error) {
+    console.error('[pdf] Failed to load PDF document', error);
+    throw error;
+  }
+
+  let text = '';
+
+  for (let pageNumber = 1; pageNumber <= pdfDocument.numPages; pageNumber += 1) {
+    const page = await pdfDocument.getPage(pageNumber);
+    const content = await page.getTextContent();
+    const pageText = content.items
+      .map((item: any) => (typeof item.str === 'string' ? item.str : ''))
+      .join(' ');
+    text += `${pageText}\n`;
+  }
+
+  await pdfDocument.cleanup();
+  await pdfDocument.destroy();
+
+  return { text, pageCount: pdfDocument.numPages };
 }

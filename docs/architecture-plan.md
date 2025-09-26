@@ -73,7 +73,7 @@ WaterReportAppNew/
    - Immediately show processing steps via state updates.
    - Send `FormData` to `/api/process-pdf` (Route Handler).
 2. **Process PDF (Server)**
-   - Parse bytes (Node `pdf-parse` or `pdfjs-dist` custom extraction).
+  - Parse bytes (Node runtime using `pdfjs-dist` text extraction helpers).
    - Return JSON array of contaminants.
 3. **Store & Display**
    - Store in Zustand: `contaminants`, `pdfMeta`, `pdfBlobUrl`.

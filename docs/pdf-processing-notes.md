@@ -1,7 +1,7 @@
 # PDF Processing Prototype Notes
 
 ## Overview
-- Prototype implemented in `src/pdf/parsePdf.ts` using the `pdf-parse` library (Node wrapper around pdf.js).
+- Prototype implemented in `src/pdf/parsePdf.ts` using the Node build of `pdfjs-dist`.
 - Exposes `parsePdf` function returning structured contaminant records plus metadata/warnings.
 - CLI helper (`npm run dev:pdf <file.pdf>`) prints JSON payload for manual inspection.
 
@@ -11,7 +11,7 @@
    ```bash
    npm install
    ```
-   > _Note:_ The workspace currently lists `pdf-parse`, `typescript`, `ts-node`, and `@types/node`. If package install fails due to offline work, run the command once network access is available.
+   > _Note:_ The workspace currently lists `pdfjs-dist`, `typescript`, `ts-node`, and `@types/node`. If package install fails due to offline work, run the command once network access is available.
 
 ## Usage
 ```bash

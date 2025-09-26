@@ -35,6 +35,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(result);
   } catch (error) {
     console.error('process-pdf route error', error);
-    return NextResponse.json({ error: 'Failed to process PDF report.' }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: 'Failed to process PDF report.',
+        details: error instanceof Error ? error.message : String(error),
+      },
+      { status: 500 }
+    );
   }
 }
