@@ -13,14 +13,49 @@ export class PdfCoApiClient {
     try {
       console.log('[pdfco] Starting PDF text extraction...');
       
-      // First, upload the file
+      // Try direct conversion first (without upload)
+      try {
+        const base64Data = buffer.toString('base64');
+        
+        const directResponse = await fetch(`${this.baseUrl}/pdf/convert/to/text`, {
+          method: 'POST',
+          headers: {
+            'x-api-key': this.apiKey,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            file: base64Data,
+            async: false,
+          }),
+        });
+
+        if (directResponse.ok) {
+          const directResult = await directResponse.json();
+          if (!directResult.error && directResult.body) {
+            console.log('[pdfco] Direct base64 extraction successful');
+            return {
+              text: directResult.body,
+              pageCount: 1,
+            };
+          }
+        }
+      } catch (directError) {
+        console.log('[pdfco] Direct base64 method failed, trying file upload method...');
+      }
+
+      // Fallback to file upload method
+      const formData = new FormData();
+      const uint8Array = new Uint8Array(buffer);
+      const blob = new Blob([uint8Array], { type: 'application/pdf' });
+      formData.append('file', blob, fileName);
+
       const uploadResponse = await fetch(`${this.baseUrl}/file/upload`, {
         method: 'POST',
         headers: {
           'x-api-key': this.apiKey,
-          'Content-Type': 'application/octet-stream',
+          // Don't set Content-Type header - let FormData set it with boundary
         },
-        body: new Uint8Array(buffer),
+        body: formData,
       });
 
       if (!uploadResponse.ok) {
@@ -30,8 +65,8 @@ export class PdfCoApiClient {
 
       const uploadResult = await uploadResponse.json();
       
-      if (!uploadResult.url) {
-        throw new Error('PDF.co upload did not return a file URL');
+      if (uploadResult.error || !uploadResult.url) {
+        throw new Error(`PDF.co upload error: ${uploadResult.message || 'No file URL returned'}`);
       }
 
       const fileUrl = uploadResult.url;
@@ -58,11 +93,11 @@ export class PdfCoApiClient {
 
       const extractResult = await extractResponse.json();
       
-      if (!extractResult.body && extractResult.error) {
-        throw new Error(`PDF.co extraction error: ${extractResult.error}`);
+      if (extractResult.error) {
+        throw new Error(`PDF.co extraction error: ${extractResult.message || extractResult.error}`);
       }
       
-      console.log('[pdfco] Successfully extracted text');
+      console.log('[pdfco] Successfully extracted text via file upload');
       
       return {
         text: extractResult.body || '',
