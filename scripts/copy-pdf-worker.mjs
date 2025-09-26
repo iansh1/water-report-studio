@@ -12,6 +12,7 @@ const target = join(targetDir, 'pdf.worker.min.mjs');
 
 if (!existsSync(source) && !existsSync(fallbackSource)) {
   console.warn('[copy-pdf-worker] pdf.worker.min.mjs not found. Skipping copy.');
+  console.warn(`[copy-pdf-worker] Checked paths: ${source}, ${fallbackSource}`);
   process.exit(0);
 }
 
