@@ -24,7 +24,7 @@ Water Report Studio is a Next.js application that turns raw water quality PDF re
 
 ## Workflow Overview
 
-1. **Unlock the workspace** – Navigate to `/` and click **Get started**. Enter the shared password to reach the dashboard.
+1. **Authenticate** – Load `/` or `/dashboard`. Your browser will prompt for the shared Basic Auth username and password.
 2. **Upload a PDF** – Use the upload panel to select a water quality report. The PDF preview will render in the side panel.
 3. **Review contaminants** – Edit names, ranges, and metadata directly in the contaminant cards. Changes persist in the store.
 4. **Generate SQL** – Click **Generate SQL** to produce insert statements. The dialog includes an editable textarea.
@@ -33,6 +33,6 @@ Water Report Studio is a Next.js application that turns raw water quality PDF re
 
 ## Authentication Flow
 
-- Protected routes (`/dashboard`, `/deploy`, etc.) require a hashed cookie (`waterreport-auth`).
-- Middleware reroutes anonymous visitors to the landing page with a redirect hint.
-- The unlock form sets the cookie after verifying the shared password.
+- Middleware enforces HTTP Basic authentication for every non-static request.
+- Set `SITE_ACCESS_USERNAME` and `SITE_ACCESS_PASSWORD` in your environment (Vercel → Project Settings).
+- Once you enter credentials in the browser prompt, they are cached for the origin until the tab is closed.

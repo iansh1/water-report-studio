@@ -1,9 +1,6 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import { Buffer } from 'buffer';
-import { AUTH_COOKIE_NAME } from '@/lib/constants';
-import { isRequestAuthenticated } from '@/lib/auth-edge';
 import { parsePdf } from '@/pdf/parsePdf';
 
 export const runtime = 'nodejs';
@@ -13,13 +10,6 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  const cookieStore = cookies();
-  const token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
-
-  if (!(await isRequestAuthenticated(token))) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
   try {
     const contentType = request.headers.get('content-type') ?? '';
     if (!contentType.includes('multipart/form-data')) {

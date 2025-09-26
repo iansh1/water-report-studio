@@ -1,18 +1,8 @@
 import Link from 'next/link';
-import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
 import { DeployGuide } from '@/components/dashboard/deploy-guide';
 import { InteractiveSurface } from '@/components/ui/interactive-surface';
-import { AUTH_COOKIE_NAME, AUTH_REDIRECT_PARAM } from '@/lib/constants';
-import { isRequestAuthenticated } from '@/lib/auth-edge';
 
-export default async function DeployPage() {
-  const cookieStore = cookies();
-  const token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
-  if (!(await isRequestAuthenticated(token))) {
-    redirect(`/?${AUTH_REDIRECT_PARAM}=${encodeURIComponent('/deploy')}`);
-  }
-
+export default function DeployPage() {
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-4 py-16 sm:px-6 lg:px-8">
       <div className="no-hover-glow rounded-3xl border border-slate-200 bg-white/80 p-8 shadow-soft dark:border-white/10 dark:bg-slate-900/70">

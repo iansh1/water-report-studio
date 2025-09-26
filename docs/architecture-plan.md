@@ -10,7 +10,7 @@
 - **PDF Rendering:** `react-pdf` (pdfjs) within client component; fallback to iframe download link for unsupported browsers.
 - **Backend Logic:** Next.js Route Handlers (Node runtime) for PDF processing + SQL generation; optional background worker service if CPU-heavy.
 - **Database:** None (stateless). SQL scripts generated on demand.
-- **Auth Gate:** Single password prompt stored in session cookie (encrypted) using Next.js Middleware.
+- **Auth Gate:** HTTP Basic authentication enforced via Next.js middleware; credentials stored in environment variables.
 - **Deployment Target:** Vercel (serverless functions + static assets). Ensure functions fit execution/time limits.
 
 ## 2. Directory Structure (proposed)
@@ -58,10 +58,10 @@ WaterReportAppNew/
 ```
 
 ## 3. Routing & Layout Strategy
-- **Password Middleware:**
-  - Intercept requests, check for `auth-token` cookie.
-  - If missing/invalid, redirect to `/unlock` (public route) with form.
-  - On successful password submission, set signed cookie (using `@vercel/edge-config` or `iron-session`).
+- **Middleware:**
+  - Intercept requests and validate the HTTP Basic Authorization header.
+  - Prompt browsers with `WWW-Authenticate` when credentials are absent.
+  - No cookie/session storage required; browser caches credentials for the origin.
 - **App Router Layouts:**
   - Root layout handles meta, fonts, theme provider, and password context.
   - `(protected)` group ensures main dashboard only loads once password validated.
@@ -102,11 +102,10 @@ WaterReportAppNew/
 - Resizable gutter with hover highlight using CSS transitions.
 - Respect `prefers-reduced-motion` by conditionally disabling motion.
 
-## 8. Password Gate Details
-- `.env` variable `SITE_ACCESS_PASSWORD`.
-- Unlock form posts to `/api/auth/unlock` which verifies password and sets cookie.
-- Middleware protects `/dashboard` routes, allowing static assets and API routes.
-- Provide simple "Forgot password? contact admin" note.
+## 8. Access Gate Details
+- Set `SITE_ACCESS_USERNAME` and `SITE_ACCESS_PASSWORD` in `.env` / Vercel environment.
+- Middleware protects all non-static routes and returns `WWW-Authenticate` challenges when credentials are missing.
+- Browser-managed Basic Auth avoids additional state or cookies.
 
 ## 9. DevOps & Environment
 - `.env.local` for dev; `.env.production` values set in Vercel dashboard.
@@ -133,4 +132,3 @@ WaterReportAppNew/
 4. Build out form components and SQL generator utilities.
 5. Polish UI/UX, add animations, and write automated tests.
 6. Prepare Vercel deployment (envs, build, health checks).
-

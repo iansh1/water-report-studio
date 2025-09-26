@@ -1,7 +1,4 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { AUTH_COOKIE_NAME } from '@/lib/constants';
-import { isRequestAuthenticated } from '@/lib/auth-edge';
 import { generateSqlScript } from '@/lib/sql-generator';
 import { ContaminantRecord } from '@/pdf/types';
 
@@ -13,13 +10,6 @@ interface GenerateSqlRequest {
 }
 
 export async function POST(request: Request) {
-  const cookieStore = cookies();
-  const token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
-
-  if (!(await isRequestAuthenticated(token))) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
   try {
     const body = (await request.json()) as GenerateSqlRequest;
     const contaminants = body.contaminants ?? [];

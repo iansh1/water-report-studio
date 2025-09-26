@@ -1,19 +1,6 @@
-import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
 import { TopBar } from '@/components/layout/top-bar';
-import { AUTH_COOKIE_NAME, AUTH_REDIRECT_PARAM } from '@/lib/constants';
-import { isRequestAuthenticated } from '@/lib/auth-edge';
 
-export default async function ProtectedLayout({ children }: { children: React.ReactNode }) {
-  const cookieStore = cookies();
-  const token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
-  const authenticated = await isRequestAuthenticated(token);
-
-  if (!authenticated) {
-    const target = '/dashboard';
-    redirect(`/?${AUTH_REDIRECT_PARAM}=${encodeURIComponent(target)}`);
-  }
-
+export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative flex min-h-screen flex-col bg-slate-50 transition-colors duration-300 dark:bg-[#01030a]">
       <TopBar />
