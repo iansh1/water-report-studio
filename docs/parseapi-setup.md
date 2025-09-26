@@ -1,32 +1,27 @@
-# ParseAPI Integration Setup
+# PDF.co Integration Setup
 
-Your Water Report App now supports serverless PDF parsing using external APIs! 🚀
+Your Water Report App now supports serverless PDF parsing using **PDF.co** - a real, working API! 🚀
 
 ## 🔑 API Key Setup
 
-### Option 1: ParseAPI (Recommended)
-1. **Sign up:** Visit [ParseAPI.com](https://parseapi.com)
-2. **Get API key:** Create account and get your API key
-3. **Add to Vercel:** Set environment variable `PARSE_API_KEY`
-
-### Option 2: PDF.co (Alternative)
+### PDF.co (Primary - Real Working API!)
 1. **Sign up:** Visit [PDF.co](https://pdf.co)
-2. **Free tier:** 300 API calls/month free
-3. **Add to Vercel:** Set environment variable `PDF_CO_API_KEY`
+2. **Free tier:** 300 API calls/month free (perfect for testing!)
+3. **Get API key:** Go to your dashboard and copy your API key
+4. **Add to Vercel:** Set environment variable `PDF_CO_API_KEY`
 
-### Option 3: Both (Best Redundancy)
-Set both API keys for maximum reliability:
-- Primary: `PARSE_API_KEY` 
-- Fallback: `PDF_CO_API_KEY`
+### AWS Textract (Optional - High Accuracy)
+1. **AWS Account:** Need AWS account with Textract access
+2. **Set up:** Configure `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`
+3. **Note:** More complex setup but highest accuracy
 
 ## 🚀 Vercel Environment Variables
 
 1. Go to your Vercel dashboard
 2. Navigate to your project → Settings → Environment Variables
-3. Add one or both:
+3. Add your PDF.co API key:
    ```
-   PARSE_API_KEY = your_parseapi_key_here
-   PDF_CO_API_KEY = your_pdfco_key_here
+   PDF_CO_API_KEY = your_pdfco_api_key_here
    ```
 4. Redeploy your app
 
@@ -34,15 +29,15 @@ Set both API keys for maximum reliability:
 
 Your app now has a smart fallback system:
 
-1. **First:** Try ParseAPI (if configured)
-2. **Second:** Try PDF.co (if configured) 
+1. **First:** Try PDF.co (real working API - if configured)
+2. **Second:** Try AWS Textract (if configured)
 3. **Third:** Try PDF.js (limited serverless compatibility)
 4. **Final:** Graceful fallback with user guidance
 
 ## 💰 Pricing
 
-- **ParseAPI:** Check their pricing page
 - **PDF.co:** 300 free API calls/month, then paid tiers
+- **AWS Textract:** Pay per document processed
 - **PDF.js:** Free but limited in serverless
 
 ## ✅ Benefits

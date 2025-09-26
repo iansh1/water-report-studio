@@ -1,4 +1,4 @@
-import { ParseApiClient, AlternativePdfApiClient } from './parseApiClient';
+import { PdfCoApiClient, AwsTextractClient } from './parseApiClient';
 import { CONTAMINANT_CATEGORY_MAP, ContaminantRecord, PdfExtractionResult } from './types';
 
 const TABLE_START_REGEX = /table of detected contaminants/i;
@@ -239,8 +239,9 @@ function parseContaminantRow(rowText: string, contaminantName: string): Contamin
 }
 
 export async function parseServerlessPdf(buffer: Buffer, fileName: string): Promise<PdfExtractionResult> {
-  const parseApiKey = process.env.PARSE_API_KEY;
   const pdfCoApiKey = process.env.PDF_CO_API_KEY;
+  const awsAccessKey = process.env.AWS_ACCESS_KEY_ID;
+  const awsSecretKey = process.env.AWS_SECRET_ACCESS_KEY;
   
   let text = '';
   let pageCount = 1;
@@ -249,40 +250,41 @@ export async function parseServerlessPdf(buffer: Buffer, fileName: string): Prom
   try {
     console.log('[serverless-pdf] Attempting PDF parsing with external APIs...');
 
-    // Try ParseAPI first if available
-    if (parseApiKey) {
+    // Try PDF.co first (real, working API)
+    if (pdfCoApiKey) {
       try {
-        console.log('[serverless-pdf] Using ParseAPI...');
-        const parseClient = new ParseApiClient(parseApiKey);
-        const result = await parseClient.extractText(buffer, fileName);
-        text = result.text;
-        pageCount = result.pageCount;
-        console.log('[serverless-pdf] ParseAPI extraction successful');
-      } catch (error) {
-        console.warn('[serverless-pdf] ParseAPI failed, trying alternative:', error);
-        warnings.push('ParseAPI extraction failed, trying alternative service...');
-      }
-    }
-
-    // Try PDF.co as fallback if ParseAPI failed or not configured
-    if (!text && pdfCoApiKey) {
-      try {
-        console.log('[serverless-pdf] Using PDF.co as fallback...');
-        const pdfCoClient = new AlternativePdfApiClient(pdfCoApiKey);
+        console.log('[serverless-pdf] Using PDF.co...');
+        const pdfCoClient = new PdfCoApiClient(pdfCoApiKey);
         const result = await pdfCoClient.extractText(buffer, fileName);
         text = result.text;
         pageCount = result.pageCount;
         console.log('[serverless-pdf] PDF.co extraction successful');
       } catch (error) {
-        console.warn('[serverless-pdf] PDF.co also failed:', error);
-        warnings.push('PDF.co extraction also failed');
+        console.warn('[serverless-pdf] PDF.co failed, trying alternative:', error);
+        warnings.push(`PDF.co extraction failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    }
+
+    // Try AWS Textract as fallback (if configured)
+    if (!text && awsAccessKey && awsSecretKey) {
+      try {
+        console.log('[serverless-pdf] Using AWS Textract as fallback...');
+        const textractClient = new AwsTextractClient(awsAccessKey, awsSecretKey);
+        const result = await textractClient.extractText(buffer, fileName);
+        text = result.text;
+        pageCount = result.pageCount;
+        console.log('[serverless-pdf] AWS Textract extraction successful');
+      } catch (error) {
+        console.warn('[serverless-pdf] AWS Textract also failed:', error);
+        warnings.push(`AWS Textract extraction failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }
 
     // If no API keys are configured or all APIs failed
     if (!text) {
-      if (!parseApiKey && !pdfCoApiKey) {
-        warnings.push('No PDF parsing API keys configured. Please set PARSE_API_KEY or PDF_CO_API_KEY environment variables.');
+      if (!pdfCoApiKey && !awsAccessKey) {
+        warnings.push('No PDF parsing API keys configured. Please set PDF_CO_API_KEY environment variable.');
+        warnings.push('Get a free API key at https://pdf.co (300 API calls/month free)');
       } else {
         warnings.push('All PDF parsing services failed. The PDF might be corrupted or in an unsupported format.');
       }
@@ -301,6 +303,7 @@ export async function parseServerlessPdf(buffer: Buffer, fileName: string): Prom
           '1. Use the PDF preview to manually extract contaminant data',
           '2. Convert your PDF to a text format first',
           '3. Check if your PDF is corrupted or password-protected',
+          '4. Get a free PDF.co API key at https://pdf.co',
           ...warnings
         ]
       };
