@@ -1,8 +1,6 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
-const BASIC_USERNAME = process.env.SITE_ACCESS_USERNAME ?? 'water-admin';
-const BASIC_PASSWORD = process.env.SITE_ACCESS_PASSWORD;
 const REALM = 'Water Report Studio';
 
 const decodeBasicAuth = (header: string | null): string | null => {
@@ -22,13 +20,21 @@ const decodeBasicAuth = (header: string | null): string | null => {
 };
 
 export function middleware(request: NextRequest) {
-  if (!BASIC_PASSWORD) {
-    console.error('[middleware] SITE_ACCESS_PASSWORD is not set.');
-    return new NextResponse('Server misconfiguration', { status: 500 });
+  const username = process.env.SITE_ACCESS_USERNAME ?? 'water-admin';
+  const password = process.env.SITE_ACCESS_PASSWORD ?? '';
+
+  if (!password) {
+    console.error('[middleware] SITE_ACCESS_PASSWORD is not set. Falling back to 401.');
+    return new NextResponse('Authentication required', {
+      status: 401,
+      headers: {
+        'WWW-Authenticate': `Basic realm="${REALM}"`,
+      },
+    });
   }
 
   const credentials = decodeBasicAuth(request.headers.get('authorization'));
-  const expected = `${BASIC_USERNAME}:${BASIC_PASSWORD}`;
+  const expected = `${username}:${password}`;
 
   if (credentials === expected) {
     return NextResponse.next();
