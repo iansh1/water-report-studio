@@ -30,7 +30,29 @@ export async function POST(request: NextRequest) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    const result = await parsePdf({ buffer, fileName: file.name });
+    let result;
+    try {
+      result = await parsePdf({ buffer, fileName: file.name });
+    } catch (error) {
+      console.error('PDF parsing failed, returning fallback result:', error);
+
+      // Return a fallback result with basic information
+      result = {
+        metadata: {
+          fileName: file.name,
+          pageCount: 1 // We can't determine page count without PDF parsing
+        },
+        contaminants: [],
+        rawText: '',
+        warnings: [
+          'PDF parsing failed due to serverless environment limitations.',
+          'Please consider the following alternatives:',
+          '1. Use the PDF preview to manually extract contaminant data',
+          '2. Convert your PDF to text format (TXT) before uploading',
+          '3. Use the "Generate SQL" feature with manually entered data'
+        ]
+      };
+    }
 
     return NextResponse.json(result);
   } catch (error) {

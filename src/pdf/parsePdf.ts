@@ -252,8 +252,8 @@ export async function parsePdf(options: ParseOptions): Promise<PdfExtractionResu
   }
 
   const fileBuffer = buffer ?? (await fs.readFile(path.resolve(filePath!)));
-  const { text, pageCount } = await extractPdfText(fileBuffer);
-  const lines = text
+  const extractResult = await extractPdfText(fileBuffer);
+  const lines = (extractResult.text || '')
     .split(/\r?\n/)
     .map(normaliseWhitespace)
     .filter((line) => line.length > 0);
@@ -326,15 +326,33 @@ export async function parsePdf(options: ParseOptions): Promise<PdfExtractionResu
   return {
     metadata: {
       fileName: options.fileName ?? (filePath ? path.basename(filePath) : 'uploaded.pdf'),
-      pageCount
+      pageCount: extractResult.pageCount
     },
-    contaminants,
-    rawText: text,
-    warnings
+    contaminants: extractResult.contaminants || contaminants,
+    rawText: extractResult.text || '',
+    warnings: [...warnings, ...(extractResult.warnings || [])]
   };
 }
 
-async function extractPdfText(buffer: Buffer): Promise<{ text: string; pageCount: number }> {
+// Fallback function for when PDF.js completely fails
+export async function parsePdfFallback(fileName: string): Promise<PdfExtractionResult> {
+  console.log('[pdf] Using fallback PDF parsing method');
+  return {
+    metadata: {
+      fileName,
+      pageCount: 1
+    },
+    contaminants: [],
+    rawText: '',
+    warnings: [
+      'PDF parsing failed due to serverless environment limitations.',
+      'Please use the PDF preview to manually extract contaminant data.',
+      'You can still generate SQL with manually entered data.'
+    ]
+  };
+}
+
+async function extractPdfText(buffer: Buffer): Promise<{ text: string; pageCount: number; metadata?: any; contaminants?: any[]; warnings?: string[] }> {
   // Set up global polyfills for serverless environment
   if (typeof globalThis.DOMMatrix === 'undefined') {
     (globalThis as any).DOMMatrix = class {
@@ -343,7 +361,7 @@ async function extractPdfText(buffer: Buffer): Promise<{ text: string; pageCount
       static fromMatrix() { return new (globalThis as any).DOMMatrix(); }
     };
   }
-  
+
   if (typeof globalThis.Path2D === 'undefined') {
     (globalThis as any).Path2D = class Path2D {};
   }
@@ -373,35 +391,59 @@ async function extractPdfText(buffer: Buffer): Promise<{ text: string; pageCount
     (globalThis as any).createImageBitmap = () => Promise.resolve({});
   }
 
-  const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
-  const pdfjsLib = (pdfjs as any).default ?? (pdfjs as any);
-  
-  // Disable worker completely to avoid worker file issues
-  pdfjsLib.GlobalWorkerOptions.workerSrc = '';
-  pdfjsLib.GlobalWorkerOptions.workerPort = null;
-  
+  // Load PDF.js with worker disabled before importing
+  const pdfjsLib = await import('pdfjs-dist');
+
+  // Completely disable workers and set up environment
+  (pdfjsLib as any).GlobalWorkerOptions.workerSrc = '';
+  (pdfjsLib as any).GlobalWorkerOptions.workerPort = null;
+  (pdfjsLib as any).GlobalWorkerOptions.disableWorker = true;
+
+  // Override worker setup to prevent any worker loading
+  (pdfjsLib as any).PDFWorker = null;
+  (pdfjsLib as any).WorkerMessageHandler = class WorkerMessageHandler {};
+
+  // Try to load the PDF document with minimal configuration
   let pdfDocument;
   try {
     const documentData = new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength);
-    const getDocument = pdfjsLib.getDocument as ((params: any) => any) | undefined;
-    if (!getDocument) {
-      throw new Error('pdfjs getDocument export not found');
-    }
-    const loadingTask = getDocument({ 
-      data: documentData, 
+
+    // First try with minimal configuration
+    const loadingTask = (pdfjsLib as any).getDocument({
+      data: documentData,
       disableWorker: true,
       isEvalSupported: false,
       useSystemFonts: true,
-      standardFontDataUrl: null,
-      useWorkerFetch: false,
-      disableAutoFetch: true,
-      disableStream: true,
-      disableRange: true
+      verbosity: 0
     });
+
     pdfDocument = await loadingTask.promise;
   } catch (error) {
-    console.error('[pdf] Failed to load PDF document', error);
-    throw error;
+    console.error('[pdf] First attempt failed, trying alternative approach:', error);
+
+    // If the first attempt fails, try without any worker-related options
+    try {
+      const documentData = new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength);
+      const loadingTask = (pdfjsLib as any).getDocument(documentData);
+      pdfDocument = await loadingTask.promise;
+    } catch (secondError) {
+      console.error('[pdf] Second attempt also failed:', secondError);
+      // Return a basic result instead of throwing an error
+      console.log('[pdf] Returning fallback result due to PDF.js serverless limitations');
+      return {
+        text: '',
+        pageCount: 1,
+        metadata: {
+          fileName: 'uploaded.pdf',
+          pageCount: 1
+        },
+        contaminants: [],
+        warnings: [
+          'PDF parsing failed due to serverless environment limitations.',
+          'Please use the PDF preview to manually extract contaminant data.'
+        ]
+      };
+    }
   }
 
   let text = '';
