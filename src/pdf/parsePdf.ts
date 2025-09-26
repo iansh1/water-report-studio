@@ -335,6 +335,27 @@ export async function parsePdf(options: ParseOptions): Promise<PdfExtractionResu
 }
 
 async function extractPdfText(buffer: Buffer): Promise<{ text: string; pageCount: number }> {
+  // Set up global polyfills for serverless environment
+  if (typeof globalThis.DOMMatrix === 'undefined') {
+    (globalThis as any).DOMMatrix = class {
+      a = 1; b = 0; c = 0; d = 1; e = 0; f = 0;
+      constructor() {}
+      static fromMatrix() { return new (globalThis as any).DOMMatrix(); }
+    };
+  }
+  
+  if (typeof globalThis.Path2D === 'undefined') {
+    (globalThis as any).Path2D = class Path2D {};
+  }
+
+  if (typeof globalThis.CanvasRenderingContext2D === 'undefined') {
+    (globalThis as any).CanvasRenderingContext2D = class CanvasRenderingContext2D {};
+  }
+
+  if (typeof globalThis.HTMLCanvasElement === 'undefined') {
+    (globalThis as any).HTMLCanvasElement = class HTMLCanvasElement {};
+  }
+
   const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
   const pdfjsLib = (pdfjs as any).default ?? (pdfjs as any);
   let pdfDocument;
@@ -344,7 +365,12 @@ async function extractPdfText(buffer: Buffer): Promise<{ text: string; pageCount
     if (!getDocument) {
       throw new Error('pdfjs getDocument export not found');
     }
-    const loadingTask = getDocument({ data: documentData, disableWorker: true });
+    const loadingTask = getDocument({ 
+      data: documentData, 
+      disableWorker: true,
+      isEvalSupported: false,
+      useSystemFonts: true
+    });
     pdfDocument = await loadingTask.promise;
   } catch (error) {
     console.error('[pdf] Failed to load PDF document', error);
