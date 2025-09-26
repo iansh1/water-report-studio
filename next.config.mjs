@@ -2,7 +2,6 @@
 const nextConfig = {
   experimental: {
     typedRoutes: true,
-    serverComponentsExternalPackages: ['pdf-parse'],
   },
   eslint: {
     dirs: ['src'],

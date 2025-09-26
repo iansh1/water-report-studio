@@ -1,6 +1,5 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import pdfParse, { PDFInfo } from 'pdf-parse';
 import { CONTAMINANT_CATEGORY_MAP, ContaminantRecord, PdfExtractionResult } from './types';
 
 interface ParseOptions {
@@ -252,6 +251,9 @@ export async function parsePdf(options: ParseOptions): Promise<PdfExtractionResu
     throw new Error('Either filePath or buffer must be provided');
   }
 
+  // Dynamic import to prevent build-time execution
+  const { default: pdfParse } = await import('pdf-parse');
+  
   const fileBuffer = buffer ?? (await fs.readFile(path.resolve(filePath!)));
   const result = await pdfParse(fileBuffer);
 
@@ -329,7 +331,7 @@ export async function parsePdf(options: ParseOptions): Promise<PdfExtractionResu
   return {
     metadata: {
       fileName: options.fileName ?? (filePath ? path.basename(filePath) : 'uploaded.pdf'),
-      pageCount: (info as PDFInfo | undefined)?.Pages ?? 0
+      pageCount: (info as any)?.Pages ?? 0
     },
     contaminants,
     rawText: text,
