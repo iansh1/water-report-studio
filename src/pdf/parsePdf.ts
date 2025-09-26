@@ -354,54 +354,101 @@ export async function parsePdfFallback(fileName: string): Promise<PdfExtractionR
 
 async function extractPdfText(buffer: Buffer): Promise<{ text: string; pageCount: number; metadata?: any; contaminants?: any[]; warnings?: string[] }> {
   // Set up global polyfills for serverless environment
-  if (typeof globalThis.DOMMatrix === 'undefined') {
-    (globalThis as any).DOMMatrix = class {
-      a = 1; b = 0; c = 0; d = 1; e = 0; f = 0;
-      constructor() {}
-      static fromMatrix() { return new (globalThis as any).DOMMatrix(); }
-    };
+  try {
+    if (typeof globalThis.DOMMatrix === 'undefined') {
+      (globalThis as any).DOMMatrix = class {
+        a = 1; b = 0; c = 0; d = 1; e = 0; f = 0;
+        constructor() {}
+        static fromMatrix() { return new (globalThis as any).DOMMatrix(); }
+      };
+    }
+  } catch (e) {
+    // DOMMatrix might be read-only in serverless environment
   }
 
-  if (typeof globalThis.Path2D === 'undefined') {
-    (globalThis as any).Path2D = class Path2D {};
+  try {
+    if (typeof globalThis.Path2D === 'undefined') {
+      (globalThis as any).Path2D = class Path2D {};
+    }
+  } catch (e) {
+    // Path2D might be read-only in serverless environment
   }
 
-  if (typeof globalThis.CanvasRenderingContext2D === 'undefined') {
-    (globalThis as any).CanvasRenderingContext2D = class CanvasRenderingContext2D {};
+  try {
+    if (typeof globalThis.CanvasRenderingContext2D === 'undefined') {
+      (globalThis as any).CanvasRenderingContext2D = class CanvasRenderingContext2D {};
+    }
+  } catch (e) {
+    // CanvasRenderingContext2D might be read-only in serverless environment
   }
 
-  if (typeof globalThis.HTMLCanvasElement === 'undefined') {
-    (globalThis as any).HTMLCanvasElement = class HTMLCanvasElement {};
+  try {
+    if (typeof globalThis.HTMLCanvasElement === 'undefined') {
+      (globalThis as any).HTMLCanvasElement = class HTMLCanvasElement {};
+    }
+  } catch (e) {
+    // HTMLCanvasElement might be read-only in serverless environment
   }
 
-  if (typeof globalThis.ImageData === 'undefined') {
-    (globalThis as any).ImageData = class ImageData {
-      constructor(data: any, width: number, height?: number) {
-        this.data = data;
-        this.width = width;
-        this.height = height || width;
-      }
-      data: any;
-      width: number;
-      height: number;
-    };
+  try {
+    if (typeof globalThis.ImageData === 'undefined') {
+      (globalThis as any).ImageData = class ImageData {
+        constructor(data: any, width: number, height?: number) {
+          this.data = data;
+          this.width = width;
+          this.height = height || width;
+        }
+        data: any;
+        width: number;
+        height: number;
+      };
+    }
+  } catch (e) {
+    // ImageData might be read-only in serverless environment
   }
 
-  if (typeof globalThis.createImageBitmap === 'undefined') {
-    (globalThis as any).createImageBitmap = () => Promise.resolve({});
+  try {
+    if (typeof globalThis.createImageBitmap === 'undefined') {
+      (globalThis as any).createImageBitmap = () => Promise.resolve({});
+    }
+  } catch (e) {
+    // createImageBitmap might be read-only in serverless environment
   }
 
   // Load PDF.js with worker disabled before importing
   const pdfjsLib = await import('pdfjs-dist');
 
   // Completely disable workers and set up environment
-  (pdfjsLib as any).GlobalWorkerOptions.workerSrc = '';
-  (pdfjsLib as any).GlobalWorkerOptions.workerPort = null;
-  (pdfjsLib as any).GlobalWorkerOptions.disableWorker = true;
+  try {
+    (pdfjsLib as any).GlobalWorkerOptions.workerSrc = '';
+  } catch (e) {
+    // Property might be read-only in serverless environment
+  }
+
+  try {
+    (pdfjsLib as any).GlobalWorkerOptions.workerPort = null;
+  } catch (e) {
+    // Property might be read-only in serverless environment
+  }
+
+  try {
+    (pdfjsLib as any).GlobalWorkerOptions.disableWorker = true;
+  } catch (e) {
+    // Property might be read-only in serverless environment
+  }
 
   // Override worker setup to prevent any worker loading
-  (pdfjsLib as any).PDFWorker = null;
-  (pdfjsLib as any).WorkerMessageHandler = class WorkerMessageHandler {};
+  try {
+    (pdfjsLib as any).PDFWorker = null;
+  } catch (e) {
+    // PDFWorker is read-only in serverless environment, skip
+  }
+
+  try {
+    (pdfjsLib as any).WorkerMessageHandler = class WorkerMessageHandler {};
+  } catch (e) {
+    // WorkerMessageHandler is read-only in serverless environment, skip
+  }
 
   // Try to load the PDF document with minimal configuration
   let pdfDocument;
