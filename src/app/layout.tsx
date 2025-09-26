@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     siteName: 'Water Quality Reporter',
     images: [
       {
-        url: '/og-image',
+        url: '/og-image.png',
         width: 1200,
         height: 630,
         alt: 'Water Quality Reporter - Transform PDF reports into SQL scripts',
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
     title: 'Water Quality Reporter',
     description: 'Workspace for transforming water quality reports into SQL scripts',
     creator: '@water_reporter',
-    images: ['/og-image'],
+    images: ['/og-image.png'],
   },
   robots: {
     index: true,
