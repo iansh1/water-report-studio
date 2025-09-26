@@ -10,7 +10,7 @@
 - **PDF Rendering:** `react-pdf` (pdfjs) within client component; fallback to iframe download link for unsupported browsers.
 - **Backend Logic:** Next.js Route Handlers (Node runtime) for PDF processing + SQL generation; optional background worker service if CPU-heavy.
 - **Database:** None (stateless). SQL scripts generated on demand.
-- **Auth Gate:** HTTP Basic authentication enforced via Next.js middleware; credentials stored in environment variables.
+- **Auth Gate:** None today; add a minimal password or SSO layer before production access.
 - **Deployment Target:** Vercel (serverless functions + static assets). Ensure functions fit execution/time limits.
 
 ## 2. Directory Structure (proposed)
@@ -59,9 +59,7 @@ WaterReportAppNew/
 
 ## 3. Routing & Layout Strategy
 - **Middleware:**
-  - Intercept requests and validate the HTTP Basic Authorization header.
-  - Prompt browsers with `WWW-Authenticate` when credentials are absent.
-  - No cookie/session storage required; browser caches credentials for the origin.
+  - Not currently used. Future iterations can reintroduce a guard when requirements are defined.
 - **App Router Layouts:**
   - Root layout handles meta, fonts, theme provider, and password context.
   - `(protected)` group ensures main dashboard only loads once password validated.
@@ -103,9 +101,7 @@ WaterReportAppNew/
 - Respect `prefers-reduced-motion` by conditionally disabling motion.
 
 ## 8. Access Gate Details
-- Set `SITE_ACCESS_USERNAME` and `SITE_ACCESS_PASSWORD` in `.env` / Vercel environment.
-- Middleware protects all non-static routes and returns `WWW-Authenticate` challenges when credentials are missing.
-- Browser-managed Basic Auth avoids additional state or cookies.
+- Authentication is intentionally omitted right now. Revisit before production rollout.
 
 ## 9. DevOps & Environment
 - `.env.local` for dev; `.env.production` values set in Vercel dashboard.
