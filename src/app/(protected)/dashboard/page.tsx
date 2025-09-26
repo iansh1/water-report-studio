@@ -30,7 +30,7 @@ export default function DashboardPage() {
         <InteractiveSurface className="no-hover-glow space-y-4 p-8">
           <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Need the connection steps?</h2>
           <p className="text-sm text-slate-600 dark:text-slate-400">
-            When you’re ready to load the latest contaminants into MariaDB, open the dedicated connection guide for the full checklist.
+            When you&apos;re ready to load the latest contaminants into MariaDB, open the dedicated connection guide for the full checklist.
           </p>
           <div>
             <Link

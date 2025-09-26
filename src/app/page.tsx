@@ -18,8 +18,7 @@ export default function HomePage() {
               From raw PDF reports to MariaDB-ready.
             </h1>
             <p className="text-lg text-slate-600 dark:text-slate-300">
-              Upload a water quality report, validate contaminants with smart editing, and ship the results to MariaDB using a
-              checklist.
+              Professional workspace for transforming water quality PDF reports into structured data and MariaDB-ready SQL scripts.
             </p>
             <div className="flex flex-wrap gap-3">
               <Link

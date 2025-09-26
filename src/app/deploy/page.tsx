@@ -1,6 +1,12 @@
 import Link from 'next/link';
 import { DeployGuide } from '@/components/dashboard/deploy-guide';
 import { InteractiveSurface } from '@/components/ui/interactive-surface';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Deploy Guide - Water Quality Reporter',
+  description: 'Step-by-step guide for deploying SQL scripts to MariaDB database with connection instructions and deployment checklist',
+};
 
 export default function DeployPage() {
   return (
