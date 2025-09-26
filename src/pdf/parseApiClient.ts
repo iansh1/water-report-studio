@@ -31,12 +31,28 @@ export class PdfCoApiClient {
 
         if (directResponse.ok) {
           const directResult = await directResponse.json();
-          if (!directResult.error && directResult.body) {
-            console.log('[pdfco] Direct base64 extraction successful');
-            return {
-              text: directResult.body,
-              pageCount: 1,
-            };
+          if (!directResult.error) {
+            let extractedText = '';
+            let pageCount = directResult.pagecount || 1;
+
+            if (directResult.url) {
+              console.log('[pdfco] Downloading extracted text from URL (direct method)...');
+              const textResponse = await fetch(directResult.url);
+              if (textResponse.ok) {
+                extractedText = await textResponse.text();
+                console.log('[pdfco] Direct base64 extraction successful');
+                return {
+                  text: extractedText,
+                  pageCount: pageCount,
+                };
+              }
+            } else if (directResult.body) {
+              console.log('[pdfco] Direct base64 extraction successful');
+              return {
+                text: directResult.body,
+                pageCount: pageCount,
+              };
+            }
           }
         }
       } catch (directError) {
@@ -96,12 +112,29 @@ export class PdfCoApiClient {
       if (extractResult.error) {
         throw new Error(`PDF.co extraction error: ${extractResult.message || extractResult.error}`);
       }
+
+      // PDF.co returns a URL to the extracted text file, not the text directly
+      let extractedText = '';
+      let pageCount = extractResult.pagecount || 1;
+
+      if (extractResult.url) {
+        console.log('[pdfco] Downloading extracted text from URL...');
+        const textResponse = await fetch(extractResult.url);
+        if (textResponse.ok) {
+          extractedText = await textResponse.text();
+        } else {
+          throw new Error(`Failed to download extracted text: ${textResponse.status}`);
+        }
+      } else if (extractResult.body) {
+        // Fallback if text is directly in body
+        extractedText = extractResult.body;
+      }
       
       console.log('[pdfco] Successfully extracted text via file upload');
       
       return {
-        text: extractResult.body || '',
-        pageCount: 1, // PDF.co doesn't return page count in text extraction
+        text: extractedText,
+        pageCount: pageCount,
       };
     } catch (error) {
       console.error('[pdfco] Text extraction failed:', error);

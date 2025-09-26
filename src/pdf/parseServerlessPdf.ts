@@ -265,7 +265,7 @@ export async function parseServerlessPdf(buffer: Buffer, fileName: string): Prom
       }
     }
 
-    // Try AWS Textract as fallback (if configured)
+    // Try AWS Textract as fallback (only if PDF.co failed and AWS is configured)
     if (!text && awsAccessKey && awsSecretKey) {
       try {
         console.log('[serverless-pdf] Using AWS Textract as fallback...');
@@ -278,6 +278,11 @@ export async function parseServerlessPdf(buffer: Buffer, fileName: string): Prom
         console.warn('[serverless-pdf] AWS Textract also failed:', error);
         warnings.push(`AWS Textract extraction failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
+    }
+
+    // If we have text from PDF.co, we're done - don't continue to "failed" logic
+    if (text) {
+      console.log('[serverless-pdf] External API extraction successful, processing text...');
     }
 
     // If no API keys are configured or all APIs failed
