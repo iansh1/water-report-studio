@@ -28,8 +28,3 @@ Water Report Studio is a Next.js application that turns raw water quality PDF re
 3. **Review contaminants** – Edit names, ranges, and metadata directly in the contaminant cards. Changes persist in the store.
 4. **Generate SQL** – Click **Generate SQL** to produce insert statements. The dialog includes an editable textarea.
 5. **Deploy** – Switch to the **Deploy Guide** tab (or visit `/deploy`) to follow the MariaDB connection checklist.
-
-
-## Authentication
-
-Access is currently open; add your own authentication layer before production deployment.
