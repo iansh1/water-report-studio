@@ -1,6 +1,6 @@
 # Water Report Studio
 
-Water Report Studio is a Next.js application that turns raw water quality PDF reports into structured data and MariaDB-ready SQL scripts. Upload a report, review and edit extracted contaminant rows, preview the PDF alongside your edits, and follow an integrated connection guide to publish the results to Vulcan's MariaDB instance.
+Water Report Studio is a Next.js application that turns raw water quality PDF reports into structured data and MariaDB-ready SQL scripts. Upload a report, review and edit extracted contaminant rows, preview the PDF alongside your edits, and follow an integrated connection guide to publish the results to a SQL database.
 
 ## Features
 
